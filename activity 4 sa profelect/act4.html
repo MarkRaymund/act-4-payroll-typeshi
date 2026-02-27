@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="stylesheet.css">
+    <title>(activity#4)  Activity 5 Payroll System</title>
+    <script src="jquery.js"></script>
+</head>
+<body>
+
+<h2>Payroll System</h2>
+
+<div class="form-container">
+    <div class="form-row">
+        <label for="empId">Enter ID:</label>
+        <input type="text" id="empId" placeholder="ID">
+    </div>
+    <div class="form-row">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" placeholder="Last Name">
+    </div>
+    <div class="form-row">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" placeholder="First Name">
+    </div>
+    <div class="form-row">
+        <label for="middleName">Middle Name:</label>
+        <input type="text" id="middleName" placeholder="Middle Name">
+    </div>
+    <div class="form-row">
+        <label for="position">Position:</label>
+        <input type="text" id="position" placeholder="Position">
+    </div>
+    <div class="form-row">
+        <label for="rate">Rate/Day:</label>
+        <input type="number" id="rate" placeholder="Your rate per day">
+    </div>
+    <div class="form-row">
+        <label for="days">Days:</label>
+        <input type="number" id="days" placeholder="How many days you work">
+    </div>
+</div>
+
+
+
+<br><br>
+<div class="button-container">
+    <button id="addBtn">Add Data</button>
+    <button id="updateBtn">Update</button>
+    <button id="clearBtn">Clear</button>
+</div>
+
+<br><br>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Middle Name</th>
+            <th>Position</th>
+            <th>Rate/Day</th>
+            <th>Days</th>
+            <th>Gross Pay</th>
+            <th>Deduction</th>
+            <th>Net Pay</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="payrollTable"></tbody>
+</table>
+
+<script>
+$(document).ready(function(){
+    
+    var activeRowSelection = null;
+
+    function resultNgSahod(dailyCompensation, attendanceCount){
+
+        var initialEarnings = dailyCompensation * attendanceCount;
+        var socSecContrib = initialEarnings * 0.05;
+        var pagibig = initialEarnings * 0.03;
+        var philhealt = initialEarnings * 0.02;
+        var taxBIR = initialEarnings * 0.05;
+        var bawasDeductions = socSecContrib + pagibig + philhealt + taxBIR;
+        var takeHomePay = initialEarnings - bawasDeductions;
+
+        return {
+            grossEarnings: initialEarnings.toFixed(2),
+            socialSecurity: socSecContrib.toFixed(2),
+            housingFund: pagibig.toFixed(2),
+            healthInsurance: philhealt.toFixed(2),
+            taxAmount: taxBIR.toFixed(2),
+            totalWithholding: bawasDeductions.toFixed(2),
+            finalSalary: takeHomePay.toFixed(2)
+        };
+    }
+
+    $("#addBtn").click(function(){
+
+        var staffId = $("#empId").val();
+        var familyName = $("#lastName").val();
+        var givenName = $("#firstName").val();
+        var middleInitial = $("#middleName").val();
+        var jobTitle = $("#position").val();
+        var salaryRate = parseFloat($("#rate").val());
+        var totalDays = parseFloat($("#days").val());
+
+        if(staffId=="" || familyName=="" || givenName=="" || isNaN(salaryRate) || isNaN(totalDays)){
+            alert("Please complete all required fields!");
+            return;
+        }
+
+        var salaryDetails = resultNgSahod(salaryRate, totalDays);
+
+        var tableRowHtml = "<tr>" +
+            "<td>"+staffId+"</td>" +
+            "<td>"+familyName+"</td>" +
+            "<td>"+givenName+"</td>" +
+            "<td>"+middleInitial+"</td>" + 
+            "<td>"+jobTitle+"</td>" +
+            "<td>"+salaryRate+"</td>" +
+            "<td>"+totalDays+"</td>" +
+            "<td>"+salaryDetails.grossEarnings+"</td>" +
+            "<td>"+salaryDetails.totalWithholding+"</td>" +
+            "<td>"+salaryDetails.finalSalary+"</td>" +
+            "<td>" +
+                "<button class='displayBtn'>Display</button> " +
+                "<button class='editBtn'>Edit</button> " +
+                "<button class='deleteBtn'>Delete</button>" +
+            "</td>" +
+        "</tr>";
+
+        $("#payrollTable").append(tableRowHtml);
+        resetInputForm();
+    });
+
+    $(document).on("click", ".displayBtn", function(){
+
+        var targetRow = $(this).closest("tr");
+        var staffId = targetRow.find("td:eq(0)").text();
+        var familyName = targetRow.find("td:eq(1)").text();
+        var givenName = targetRow.find("td:eq(2)").text();
+        var middleInitial = targetRow.find("td:eq(3)").text();
+        var jobTitle = targetRow.find("td:eq(4)").text();
+        var currentRate = parseFloat(targetRow.find("td:eq(5)").text());
+        var currentDays = parseFloat(targetRow.find("td:eq(6)").text());
+
+        var calculatedStatement = resultNgSahod(currentRate, currentDays);
+
+        alert(
+            "OUTPUT:"+"\n"+
+            "NAME: " + givenName + " " + middleInitial + " " + familyName + "\n"+
+            "Employee ID: " + staffId + "\n"+
+            "Position: " + jobTitle + "\n"+
+            "RATE PER DAY: " + currentRate + "\n" +
+            "DAYS OF WORK: " + currentDays + "\n\n" +
+            "GROSS PAY: " + calculatedStatement.grossEarnings + "\n\n" +
+            "DEDUCTIONS:\n" +
+            "- SSS: " + calculatedStatement.socialSecurity + "\n" +
+            "- PAGIBIG: " + calculatedStatement.housingFund + "\n" +
+            "- PHILHEALTH: " + calculatedStatement.healthInsurance + "\n" +
+            "- TAX: " + calculatedStatement.taxAmount + "\n\n" +
+            "TOTAL DEDUCTIONS: " + calculatedStatement.totalWithholding + "\n\n" +
+            "NET PAY: " + calculatedStatement.finalSalary
+        );
+    });
+
+    $(document).on("click", ".editBtn", function(){
+
+        activeRowSelection = $(this).closest("tr");
+
+        $("#empId").val(activeRowSelection.find("td:eq(0)").text());
+        $("#lastName").val(activeRowSelection.find("td:eq(1)").text());
+        $("#firstName").val(activeRowSelection.find("td:eq(2)").text());
+        $("#middleName").val(activeRowSelection.find("td:eq(3)").text());
+        $("#position").val(activeRowSelection.find("td:eq(4)").text());
+        $("#rate").val(activeRowSelection.find("td:eq(5)").text());
+        $("#days").val(activeRowSelection.find("td:eq(6)").text());
+    });
+
+    $("#updateBtn").click(function(){
+
+        if(activeRowSelection != null){
+
+            var updatedRate = parseFloat($("#rate").val());
+            var updatedDays = parseFloat($("#days").val());
+
+            var updatedPayrollData = resultNgSahod(updatedRate, updatedDays);
+
+            activeRowSelection.find("td:eq(0)").text($("#empId").val());
+            activeRowSelection.find("td:eq(1)").text($("#lastName").val());
+            activeRowSelection.find("td:eq(2)").text($("#firstName").val());
+            activeRowSelection.find("td:eq(3)").text($("#middleName").val());
+            activeRowSelection.find("td:eq(4)").text($("#position").val());
+            activeRowSelection.find("td:eq(5)").text(updatedRate);
+            activeRowSelection.find("td:eq(6)").text(updatedDays);
+            activeRowSelection.find("td:eq(7)").text(updatedPayrollData.grossEarnings);
+            activeRowSelection.find("td:eq(8)").text(updatedPayrollData.totalWithholding);
+            activeRowSelection.find("td:eq(9)").text(updatedPayrollData.finalSalary);
+
+            activeRowSelection = null;
+            resetInputForm();
+        }
+    });
+
+    $(document).on("click", ".deleteBtn", function(){
+        $(this).closest("tr").remove();
+    });
+
+    function resetInputForm(){
+        $("#empId").val("");
+        $("#lastName").val("");
+        $("#firstName").val("");
+        $("#middleName").val("");
+        $("#position").val("");
+        $("#rate").val("");
+        $("#days").val("");
+    }
+
+    $("#clearBtn").click(function(){
+        resetInputForm();
+    });
+
+});
+</script>
+
+
+</body>
+</html>
